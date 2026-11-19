@@ -1,0 +1,23 @@
+name: Decode temporary Instagram story image
+on:
+  push:
+    paths:
+      - 'posts/*-story-temp.jpg.b64'
+permissions:
+  contents: write
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode JPEG and commit
+        run: |
+          set -eu
+          for p in posts/*-story-temp.jpg.b64; do
+            [ -f "$p" ] || continue
+            base64 -d "$p" > "${p%.b64}"
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add posts/*.jpg
+          git diff --cached --quiet || (git commit -m "Decode temporary Instagram story image" && git push)
